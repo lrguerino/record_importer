@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>global.peopleRESTAPIHelper</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>peopleRESTAPIHelper</name>
+        <script><![CDATA[var peopleRESTAPIHelper = Class.create();
+peopleRESTAPIHelper.prototype = {
+
+	TABLES: {
+		DATA_SOURCE: "sys_data_source",
+		SCHEDULED_IMPORT_SET: "scheduled_import_set",
+		PEOPLE_STAGING: "u_peope_staging"
+	},
+
+	RUN_AS_ID: "6816f79cc0a8016401c5a33be04be441",
+
+	initialize: function (requestBody) {
+		this.now = new Date().getTime().toString();
+		this.name = "Temp_Peope_Data_JSON_" + this.now;
+		this.guid = gs.generateGUID();
+	},
+
+	getDataSourceID: function () {
+		return this._sourceID;
+	},
+
+	getScheduleID: function () {
+		return this._scheduleID;
+	},
+
+	canCreateAttachment: function () {
+		var sourceRecord = new GlideRecord(this.TABLES.DATA_SOURCE);
+		if (sourceRecord.get(this.getDataSourceID())) {
+			return true;
+		}
+		return false;
+	},
+
+	runAsync: function (requestBody) {
+		this._newDataSourceJSON(this.TABLES.PEOPLE_STAGING, "//");
+		this._newScheduleConcorrentImport();
+		this._writeAttachment(requestBody);
+	},
+
+	_newScheduleConcorrentImport: function () {
+		var scheduleRecord = new GlideRecord(this.TABLES.SCHEDULED_IMPORT_SET);
+		scheduleRecord.newRecord();
+		scheduleRecord.setNewGuidValue(this.guid);
+		scheduleRecord.setValue("name", this.name);
+		scheduleRecord.setValue("data_source", this.getDataSourceID());
+		scheduleRecord.setValue("run_as", this.RUN_AS_ID);
+		scheduleRecord.setValue("active", true);
+		scheduleRecord.setValue("run_type", "periodically");
+		scheduleRecord.setValue("run_period", new GlideDuration(36000000)); // 10 hours
+		scheduleRecord.setValue("run_start", this._getRunStartTime());
+		scheduleRecord.setValue("concurrent_import", true);
+		/*
+		isRecord.setValue("post_script_bool", true);
+		isRecord.setValue(
+			"post_script", 
+			"new global.peopleRESTAPIHelper()._cleanUpData('sys_data_source', '" + this.this.sourceID  + "', 'sys_import_set', '" + this.guid + "')"
+		);
+		*/
+		this._scheduleID = scheduleRecord.insert();
+	},
+
+	_cleanUpData: function (tableName1, sysID1, tableName2, sysID2) {
+		gs.info("_cleanUpData function");
+	},
+
+	_newDataSourceJSON: function (tableName, rootNode) {
+		var sourceRecord = new GlideRecord(this.TABLES.DATA_SOURCE);
+		sourceRecord.newRecord();
+		sourceRecord.setValue("name", this.name);
+		sourceRecord.setValue("import_set_table_name", tableName);
+		sourceRecord.setValue("type", "File");
+		sourceRecord.setValue("format", "JSON");
+		sourceRecord.setValue("jpath_root_node", rootNode);
+		sourceRecord.setValue("file_retrieval_method", "Attachment");
+		sourceRecord.insert();
+		this._sourceID = sourceRecord.getUniqueValue();
+	},
+	
+	_getRunStartTime: function () {
+		var runStart = new GlideDateTime();
+		var runStartFuture = runStart.add(-35940000);
+		return runStartFuture;
+	},
+	
+	_writeAttachment: function (requestBody) {
+		if (this.canCreateAttachment()) {
+			var attachment = new GlideSysAttachment();
+			attachment.write(
+				sourceRecord, 
+				"data_" + this.now + ".json", 
+				"application/json", 
+				JSON.stringify(requestBody)
+			);
+		}
+	},
+
+	type: "peopleRESTAPIHelper"
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2021-12-12 13:57:04</sys_created_on>
+        <sys_id>eab3c8cb07588110c360f2508c1ed0a4</sys_id>
+        <sys_mod_count>20</sys_mod_count>
+        <sys_name>peopleRESTAPIHelper</sys_name>
+        <sys_package display_value="Record Importer" source="aa9104cb07948110c360f2508c1ed0fc">aa9104cb07948110c360f2508c1ed0fc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Record Importer">aa9104cb07948110c360f2508c1ed0fc</sys_scope>
+        <sys_update_name>sys_script_include_eab3c8cb07588110c360f2508c1ed0a4</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-12-12 17:55:53</sys_updated_on>
+    </sys_script_include>
+</record_update>

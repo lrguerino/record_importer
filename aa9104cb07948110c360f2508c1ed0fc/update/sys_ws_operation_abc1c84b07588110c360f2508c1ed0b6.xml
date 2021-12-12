@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ws_operation">
+    <sys_ws_operation action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <consumes>application/json,application/xml,text/xml</consumes>
+        <consumes_customized>false</consumes_customized>
+        <default_operation_uri/>
+        <enforce_acl>cf9d01d3e73003009d6247e603f6a990</enforce_acl>
+        <http_method>POST</http_method>
+        <name>Bulk</name>
+        <operation_script><![CDATA[(function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+
+	var body = request.body.data;
+
+	if (gs.nil(body) || body.length === 0) {
+		response.setError("The body.data is not a valid object");
+		response.setStatus("400");
+		return;
+	}
+
+	var worker = new GlideScriptedHierarchicalWorker();
+	var now = new Date().getTime().toString();
+	worker.setProgressName("Import Job Matching data " + now);
+	worker.setBackground(true);
+	worker.setScriptIncludeName("global.peopleRESTAPIHelper");
+	worker.setScriptIncludeMethod("runAsync");
+	worker.putMethodArg("requestBody", body);
+	worker.start();
+	response.setStatus("201");
+
+})(request, response);]]></operation_script>
+        <operation_uri>/api/441902/importer/bulk</operation_uri>
+        <produces>application/json,application/xml,text/xml</produces>
+        <produces_customized>false</produces_customized>
+        <relative_path>/bulk</relative_path>
+        <request_example/>
+        <requires_acl_authorization>true</requires_acl_authorization>
+        <requires_authentication>true</requires_authentication>
+        <requires_snc_internal_role>true</requires_snc_internal_role>
+        <short_description/>
+        <sys_class_name>sys_ws_operation</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2021-12-12 13:49:10</sys_created_on>
+        <sys_id>abc1c84b07588110c360f2508c1ed0b6</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_name>Bulk</sys_name>
+        <sys_package display_value="Record Importer" source="aa9104cb07948110c360f2508c1ed0fc">aa9104cb07948110c360f2508c1ed0fc</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Record Importer">aa9104cb07948110c360f2508c1ed0fc</sys_scope>
+        <sys_update_name>sys_ws_operation_abc1c84b07588110c360f2508c1ed0b6</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2021-12-12 17:06:37</sys_updated_on>
+        <web_service_definition display_value="Importer">06b1484b07588110c360f2508c1ed0d3</web_service_definition>
+        <web_service_version/>
+    </sys_ws_operation>
+</record_update>
